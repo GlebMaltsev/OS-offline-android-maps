@@ -4,9 +4,10 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/hello_world" />
-
+    <fragment
+        android:id="@+id/map_fragment"
+        android:name="uk.co.ordnancesurvey.android.maps.MapFragment"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:label="@string/app_name" />
 </RelativeLayout>
