@@ -1,10 +1,8 @@
-
 package com.osofflinemap;
 
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -19,41 +17,34 @@ import uk.co.ordnancesurvey.android.maps.OSTileSource;
 
 public class MainActivity extends AppCompatActivity implements OSMap.OnMapClickListener {
 
-    private final static String TAG = MainActivity.class.getSimpleName();
+    private static final String OSTILE_FOLDER = "/maps";
 
-    private OSMap mMap;
+    private OSMap osMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        MapFragment mapFragment = ((MapFragment) getFragmentManager().findFragmentById(R.id.map_fragment));
-        mMap = mapFragment.getMap();
+        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map_fragment);
+        osMap = mapFragment.getMap();
 
-        // set list of tileSources
         ArrayList<OSTileSource> sources = new ArrayList<>();
-        sources.addAll(mMap.localTileSourcesInDirectory(this, getLocalMapTilesDirectory()));
-        mMap.setTileSources(sources);
-
-        // register as OnMapClickListener
-        mMap.setOnMapClickListener(this);
+        sources.addAll(osMap.localTileSourcesInDirectory(this,
+                new File(Environment.getExternalStorageDirectory().getPath() + OSTILE_FOLDER)));
+        osMap.setTileSources(sources);
+        osMap.setOnMapClickListener(this);
     }
 
     @Override
-    public boolean onMapClick(GridPoint gp) {
-        final String locationMessage = String.format("Map tapped at OS GridPoint\n{%.0f, %.0f}", gp.x, gp.y);
-        Log.v(TAG, locationMessage);
+    public boolean onMapClick(GridPoint gridPoint) {
+        String locationMessage = String.format("Map tapped at OS GridPoint\n{%.0f, %.0f}", gridPoint.x, gridPoint.y);
         BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker();
-        mMap.addMarker(new MarkerOptions()
-                .gridPoint(gp)
+        osMap.addMarker(new MarkerOptions()
+                .gridPoint(gridPoint)
                 .title("Map clicked here!")
                 .snippet(locationMessage)
                 .icon(icon));
         return true;
-    }
-
-    public static File getLocalMapTilesDirectory() {
-        return new File(Environment.getExternalStorageDirectory().getPath() + "/spargonet/mapping");
     }
 }
