@@ -21,8 +21,11 @@ import uk.co.ordnancesurvey.android.maps.SupportMapFragment;
 
 public class MainActivity extends AppCompatActivity implements OSMap.OnMapClickListener {
 
-    private static final String OSTILE_FOLDER = "/maps";
     private static final String[] LAYERS = new String[]{"50K-660DPI", "50K-165DPI"};
+    private static final String TILE_DIRECTORY = Environment.getExternalStorageDirectory().getPath() + "/OSofflineMap/tiles";
+    private static final String TILE_NAME = "50K_10KSJ38.ostiles";
+    private static final double TILE_LON = 53.385000;
+    private static final double TILE_LAT = -2.936567;
 
     private OSMap osMap;
     private SupportMapFragment mapFragment;
@@ -32,30 +35,20 @@ public class MainActivity extends AppCompatActivity implements OSMap.OnMapClickL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        OSMapOptions options = new OSMapOptions();
-        options.products(LAYERS);
-
         FragmentManager fragmentManager = getSupportFragmentManager();
         mapFragment = (SupportMapFragment) fragmentManager.findFragmentById(R.id.map_container);
         if (mapFragment == null) {
-            mapFragment = SupportMapFragment.newInstance(options);
+            mapFragment = SupportMapFragment.newInstance(new OSMapOptions().products(LAYERS));
             fragmentManager.beginTransaction().replace(R.id.map_container, mapFragment).commit();
         }
     }
 
     @Override
     protected void onResume() {
-        super.onResume();
         setUpMapIfNeeded();
         setUpSources();
         goToTile();
-    }
-
-    private void goToTile() {
-        MapProjection mapProjection = MapProjection.getDefault();
-        GridPoint localPark = mapProjection.toGridPoint(53.385000, -2.936567);
-        setMarker(localPark);
-        osMap.moveCamera(new CameraPosition(localPark, 1f), true);
+        super.onResume();
     }
 
     private void setUpMapIfNeeded() {
@@ -67,9 +60,19 @@ public class MainActivity extends AppCompatActivity implements OSMap.OnMapClickL
 
     private void setUpSources() {
         ArrayList<OSTileSource> sources = new ArrayList<>();
-        sources.addAll(osMap.localTileSourcesInDirectory(this,
-                new File(Environment.getExternalStorageDirectory().getPath() + OSTILE_FOLDER)));
+        File tileDirectory = new File(TILE_DIRECTORY);
+        tileDirectory.mkdirs();
+        File tile = new File(tileDirectory.getPath(), TILE_NAME);
+        AssetsUtils.getFileFromAssets(this, TILE_NAME, tile);
+        sources.addAll(osMap.localTileSourcesInDirectory(this, tileDirectory));
         osMap.setTileSources(sources);
+    }
+
+    private void goToTile() {
+        MapProjection mapProjection = MapProjection.getDefault();
+        GridPoint localPark = mapProjection.toGridPoint(TILE_LON, TILE_LAT);
+        setMarker(localPark);
+        osMap.moveCamera(new CameraPosition(localPark, 1f), true);
     }
 
     @Override
@@ -79,12 +82,10 @@ public class MainActivity extends AppCompatActivity implements OSMap.OnMapClickL
     }
 
     private void setMarker(GridPoint gridPoint) {
-        String locationMessage = String.format("Map tapped at OS GridPoint\n{%.0f, %.0f}", gridPoint.x, gridPoint.y);
         BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker();
         osMap.addMarker(new MarkerOptions()
                 .gridPoint(gridPoint)
-                .title("Map clicked here!")
-                .snippet(locationMessage)
+                .snippet(gridPoint.x + "; " + gridPoint.y)
                 .icon(icon));
     }
 }
