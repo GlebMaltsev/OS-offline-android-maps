@@ -4,10 +4,8 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <fragment
-        android:id="@+id/map_fragment"
-        android:name="uk.co.ordnancesurvey.android.maps.MapFragment"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:label="@string/app_name" />
+    <FrameLayout
+        android:id="@+id/map_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 </RelativeLayout>
